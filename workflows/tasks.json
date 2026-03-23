@@ -1,0 +1,46 @@
+[
+  {
+    "name": "login_task",
+    "retryCount": 3,
+    "timeoutSeconds": 300,
+    "responseTimeoutSeconds": 30
+  },
+ 
+  {
+    "name": "backend_task",
+    "retryCount": 3,
+    "timeoutSeconds": 300,
+    "responseTimeoutSeconds": 30
+
+  },
+
+
+  {
+    "name": "db_task",
+    "retryCount": 3,
+    "timeoutSeconds": 300,
+    "responseTimeoutSeconds": 30
+  },
+   
+  {
+   "name": "undo_backend_task",
+   "retryCount": 3,
+   "timeoutSeconds": 300,
+   "responseTimeoutSeconds": 30
+  },
+
+  {
+   "name": "logout_task",
+   "retryCount": 3,
+   "timeoutSeconds": 300,
+   "responseTimeoutSeconds": 30
+  },
+
+  {
+  "name": "undo_db_task",
+  "retryCount": 3,
+  "timeoutSeconds": 300,
+  "responseTimeoutSeconds": 30
+  }
+]  
+	  

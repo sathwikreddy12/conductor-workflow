@@ -1,0 +1,148 @@
+{
+  "name": "service_flow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["username", "password"],
+  "outputParameters": {
+    "login_status": "${login.output.login_status}",
+    "backend_status": "${backend.output.backend_status}",
+    "db_status": "${database.output.db_status}"
+  },
+  "tasks": [
+
+    {
+      "name": "login_task",
+      "taskReferenceName": "login",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "username": "${workflow.input.username}",
+        "password": "${workflow.input.password}"
+      }
+    },
+
+    {
+      "name": "login_decision",
+      "taskReferenceName": "login_check",
+      "type": "DECISION",
+      "caseValueParam": "login_status",
+      "inputParameters": {
+        "login_status": "${login.output.login_status}"
+      },
+      "decisionCases": {
+
+        "success": [
+
+          {
+            "name": "backend_task",
+            "taskReferenceName": "backend",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "user": "${login.output.user}",
+              "login_status": "${login.output.login_status}"
+            }
+          },
+
+          {
+            "name": "backend_decision",
+            "taskReferenceName": "backend_check",
+            "type": "DECISION",
+            "caseValueParam": "backend_status",
+            "inputParameters": {
+              "backend_status": "${backend.output.backend_status}"
+            },
+            "decisionCases": {
+
+              "success": [
+
+                {
+                  "name": "db_task",
+                  "taskReferenceName": "database",
+                  "type": "SIMPLE",
+                  "inputParameters": {
+                    "user_record": "${backend.output.user_record}"
+                  }
+                },
+
+                {
+                  "name": "db_decision",
+                  "taskReferenceName": "db_check",
+                  "type": "DECISION",
+                  "caseValueParam": "db_status",
+                  "inputParameters": {
+                    "db_status": "${database.output.db_status}"
+                  },
+                  "decisionCases": {
+
+                    "success": []
+
+                  },
+
+                  "defaultCase": [
+
+                    {
+                      "name": "undo_db_task",
+                      "taskReferenceName": "undo_db",
+                      "type": "SIMPLE",
+                      "inputParameters": {
+                        "user": "${login.output.user}"
+                      }
+                    },
+
+                    {
+                      "name": "undo_backend_task",
+                      "taskReferenceName": "undo_backend",
+                      "type": "SIMPLE",
+                      "inputParameters": {
+                        "user": "${login.output.user}"
+                      }
+                    },
+
+                    {
+                      "name": "logout_task",
+                      "taskReferenceName": "logout_after_db_failure",
+                      "type": "SIMPLE",
+                      "inputParameters": {
+                        "user": "${login.output.user}"
+                      }
+                    }
+
+                  ]
+                }
+
+              ]
+
+            },
+
+            "defaultCase": [
+
+              {
+                "name": "undo_backend_task",
+                "taskReferenceName": "undo_backend_only",
+                "type": "SIMPLE",
+                "inputParameters": {
+                  "user": "${login.output.user}"
+                }
+              },
+
+              {
+                "name": "logout_task",
+                "taskReferenceName": "logout_after_backend_failure",
+                "type": "SIMPLE",
+                "inputParameters": {
+                  "user": "${login.output.user}"
+                }
+              }
+
+            ]
+          }
+
+        ]
+
+      },
+
+      "defaultCase": []
+
+    }
+
+  ]
+}

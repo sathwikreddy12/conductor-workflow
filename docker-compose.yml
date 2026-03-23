@@ -1,0 +1,97 @@
+services:
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli" , "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5 
+    networks:
+      - conductor-net    
+    
+  conductor-server:
+    image: orkesio/orkes-conductor-community-standalone:latest
+    container_name: conductor-server
+    ports:
+      - "8080:8080"
+      - "5000:5000"
+    environment:
+      DB: memory
+      REDIS_HOSTS: redis:6379  
+    depends_on:
+      redis:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "wget","--spider" ,  "-q", "http://localhost:8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 5  
+    networks:
+      - conductor-net      
+  
+  login-worker:
+    build:
+      context: .
+      dockerfile: workers/login_worker/Dockerfile
+    container_name: login-worker
+    restart: always
+    depends_on:
+      conductor-server:
+        condition: service_healthy  
+    networks:
+       - conductor-net
+
+  backend-worker:
+    build:
+      context: .
+      dockerfile: workers/backend_worker/Dockerfile
+    container_name: backend-worker
+    restart: always
+    depends_on:
+      conductor-server:
+         condition: service_healthy
+    networks: 
+      - conductor-net 
+
+
+  db-worker:
+    build:
+      context: .
+      dockerfile: workers/db_worker/Dockerfile
+    container_name: db-worker
+    restart: always
+    depends_on:
+      conductor-server:
+        condition: service_healthy
+     
+    networks:
+      - conductor-net      
+    
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: api
+    ports:
+      - "8000:8000"
+    depends_on: 
+      conductor-server:
+        condition: service_healthy
+    networks:
+      - conductor-net    
+
+networks:
+  conductor-net:  
+
+
+
+
+
+          
+
+
